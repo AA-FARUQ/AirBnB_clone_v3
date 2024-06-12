@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Handles all default RestFul API actions for States """
+""" objects that handle all default RestFul API actions for States """
 from models.state import State
 from models import storage
 from api.v1.views import app_views
@@ -15,20 +15,20 @@ def get_states():
     """
     all_states = storage.all(State).values()
     list_states = []
-    for state_instance in all_states:
-        states_list.append(state_instance.to_dict())
-    return jsonify(states_list)
+    for state in all_states:
+        list_states.append(state.to_dict())
+    return jsonify(list_states)
 
 
 @app_views.route('/states/<state_id>', methods=['GET'], strict_slashes=False)
 @swag_from('documentation/state/get_id_state.yml', methods=['get'])
 def get_state(state_id):
     """ Retrieves a specific State """
-    state_instance = storage.get(State, state_id)
-    if not state_instance:
+    state = storage.get(State, state_id)
+    if not state:
         abort(404)
 
-    return jsonify(state_instance.to_dict())
+    return jsonify(state.to_dict())
 
 
 @app_views.route('/states/<state_id>', methods=['DELETE'],
@@ -39,12 +39,12 @@ def delete_state(state_id):
     Deletes a State Object
     """
 
-    state_instance = storage.get(State, state_id)
+    state = storage.get(State, state_id)
 
-    if not state_instance:
+    if not state:
         abort(404)
 
-    storage.delete(state_instance)
+    storage.delete(state)
     storage.save()
 
     return make_response(jsonify({}), 200)
@@ -62,9 +62,9 @@ def post_state():
     if 'name' not in request.get_json():
         abort(400, description="Missing name")
 
-    state_data = request.get_json()
-    new_state = State(**state_data)
-    new_state.save()
+    data = request.get_json()
+    instance = State(**data)
+    instance.save()
     return make_response(jsonify(instance.to_dict()), 201)
 
 
@@ -72,21 +72,21 @@ def post_state():
 @swag_from('documentation/state/put_state.yml', methods=['PUT'])
 def put_state(state_id):
     """
-    Updates an existing State
+    Updates a State
     """
-    state_instance = storage.get(State, state_id)
+    state = storage.get(State, state_id)
 
-    if not state_instance:
+    if not state:
         abort(404)
 
     if not request.get_json():
         abort(400, description="Not a JSON")
 
-    ignore_fields = ['id', 'created_at', 'updated_at']
+    ignore = ['id', 'created_at', 'updated_at']
 
-    update_data = request.get_json()
-    for key, value in update_data.items():
-        if key not in ignore_fields:
-            setattr(state_instance, key, value)
+    data = request.get_json()
+    for key, value in data.items():
+        if key not in ignore:
+            setattr(state, key, value)
     storage.save()
-    return make_response(jsonify(state_instance.to_dict()), 200)
+    return make_response(jsonify(state.to_dict()), 200)

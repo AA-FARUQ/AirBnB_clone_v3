@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" Handles all default RestFul API actions for Reviews """
+""" objects that handle all default RestFul API actions for Reviews """
 from models.review import Review
 from models.place import Place
 from models.user import User
@@ -14,29 +14,29 @@ from flasgger.utils import swag_from
 @swag_from('documentation/reviews/get_reviews.yml', methods=['GET'])
 def get_reviews(place_id):
     """
-    Retrieves the list of all Review objects associated with a place
+    Retrieves the list of all Review objects of a Place
     """
-    place_instance = storage.get(Place, place_id)
+    place = storage.get(Place, place_id)
 
-    if not place_instance:
+    if not place:
         abort(404)
 
-    reviews_list = [review.to_dict() for review in place_instance.reviews]
+    reviews = [review.to_dict() for review in place.reviews]
 
-    return jsonify(reviews_list)
+    return jsonify(reviews)
 
 
 @app_views.route('/reviews/<review_id>', methods=['GET'], strict_slashes=False)
 @swag_from('documentation/reviews/get_review.yml', methods=['GET'])
 def get_review(review_id):
     """
-    Retrieves a Review object by its ID
+    Retrieves a Review object
     """
-    review_instance = storage.get(Review, review_id)
-    if not review_instance:
+    review = storage.get(Review, review_id)
+    if not review:
         abort(404)
 
-    return jsonify(review_instance.to_dict())
+    return jsonify(review.to_dict())
 
 
 @app_views.route('/reviews/<review_id>', methods=['DELETE'],
@@ -44,15 +44,15 @@ def get_review(review_id):
 @swag_from('documentation/reviews/delete_reviews.yml', methods=['DELETE'])
 def delete_review(review_id):
     """
-    Deletes a Review Object by its ID
+    Deletes a Review Object
     """
 
-    review_instance = storage.get(Review, review_id)
+    review = storage.get(Review, review_id)
 
-    if not review_instance:
+    if not review:
         abort(404)
 
-    storage.delete(review_instance)
+    storage.delete(review)
     storage.save()
 
     return make_response(jsonify({}), 200)
@@ -63,11 +63,11 @@ def delete_review(review_id):
 @swag_from('documentation/reviews/post_reviews.yml', methods=['POST'])
 def post_review(place_id):
     """
-    Creates a new Review object
+    Creates a Review
     """
-    place_instance = storage.get(Place, place_id)
+    place = storage.get(Place, place_id)
 
-    if not place_instance:
+    if not place:
         abort(404)
 
     if not request.get_json():
@@ -77,7 +77,7 @@ def post_review(place_id):
         abort(400, description="Missing user_id")
 
     data = request.get_json()
-    user_instance = storage.get(User, data['user_id'])
+    user = storage.get(User, data['user_id'])
 
     if not user:
         abort(404)
@@ -86,20 +86,20 @@ def post_review(place_id):
         abort(400, description="Missing text")
 
     data['place_id'] = place_id
-    review_instance = Review(**data)
-    review_instance.save()
-    return make_response(jsonify(review_instance.to_dict()), 201)
+    instance = Review(**data)
+    instance.save()
+    return make_response(jsonify(instance.to_dict()), 201)
 
 
 @app_views.route('/reviews/<review_id>', methods=['PUT'], strict_slashes=False)
 @swag_from('documentation/reviews/put_reviews.yml', methods=['PUT'])
 def put_review(review_id):
     """
-    Updates an existing Review object
+    Updates a Review
     """
-    review_instance = storage.get(Review, review_id)
+    review = storage.get(Review, review_id)
 
-    if not review_instance:
+    if not review:
         abort(404)
 
     if not request.get_json():
@@ -109,7 +109,7 @@ def put_review(review_id):
 
     data = request.get_json()
     for key, value in data.items():
-        if key not in ignore_keys:
-            setattr(review_instance, key, value)
+        if key not in ignore:
+            setattr(review, key, value)
     storage.save()
-    return make_response(jsonify(review_instance.to_dict()), 200)
+    return make_response(jsonify(review.to_dict()), 200)

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Endpoints for handling default RESTful API actions for Amenities"""
+""" objects that handles all default RestFul API actions for Amenities"""
 from models.amenity import Amenity
 from models import storage
 from api.v1.views import app_views
@@ -14,10 +14,10 @@ def get_amenities():
     Retrieves a list of all amenities
     """
     all_amenities = storage.all(Amenity).values()
-    amenities_list = []
+    list_amenities = []
     for amenity in all_amenities:
-        amenities_list.append(amenity.to_dict())
-    return jsonify(amenities_list)
+        list_amenities.append(amenity.to_dict())
+    return jsonify(list_amenities)
 
 
 @app_views.route('/amenities/<amenity_id>/', methods=['GET'],
